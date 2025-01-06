@@ -69,7 +69,7 @@ vectorizer = joblib.load(vectorizer_path)
 
 # Fungsi untuk menganalisis ulasan
 def analisis_sentimen(ulasan, rating):
-    if not ulasan or ulasan == "Masukkan Ulasan...":
+    if not ulasan.strip():  # Memastikan input ulasan tidak kosong
         st.error("Harap masukkan ulasan.")
         return
 
@@ -107,21 +107,11 @@ def analisis_sentimen(ulasan, rating):
 # Streamlit UI
 st.title("Analisis Sentimen Ulasan Shopee")
 
-# Inisialisasi session state untuk ulasan
-if "ulasan" not in st.session_state:
-    st.session_state.ulasan = ""  # Awal kosong
-
-# Fungsi untuk mengelola input ulasan
-def clear_placeholder():
-    if st.session_state.ulasan == "Masukkan Ulasan...":
-        st.session_state.ulasan = ""
-
-# Input teks ulasan dengan placeholder
+# Input teks ulasan
 ulasan = st.text_area(
     "Masukkan Ulasan Anda:",
-    value=st.session_state.ulasan or "Masukkan Ulasan...",
+    value="",  # Mengatur area teks kosong sejak awal
     height=150,
-    on_change=clear_placeholder,
 )
 
 # Input rating dengan slider
