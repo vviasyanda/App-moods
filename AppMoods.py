@@ -9,6 +9,15 @@ from nltk.tokenize import word_tokenize
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 import streamlit as st
 from PIL import Image
+import nltk
+
+# Cek dan download stopwords jika belum tersedia
+try:
+    stopwords.words('indonesian')
+except LookupError:
+    nltk.download('stopwords')
+
+
 
 # Fungsi Pembersihan Teks
 def clean_text(text):
