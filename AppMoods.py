@@ -107,8 +107,22 @@ def analisis_sentimen(ulasan, rating):
 # Streamlit UI
 st.title("Analisis Sentimen Ulasan Shopee")
 
-# Input teks ulasan
-ulasan = st.text_area("Masukkan Ulasan Anda:", "Masukkan Ulasan...", height=150)
+# Inisialisasi session state untuk ulasan
+if "ulasan" not in st.session_state:
+    st.session_state.ulasan = ""  # Awal kosong
+
+# Fungsi untuk mengelola input ulasan
+def clear_placeholder():
+    if st.session_state.ulasan == "Masukkan Ulasan...":
+        st.session_state.ulasan = ""
+
+# Input teks ulasan dengan placeholder
+ulasan = st.text_area(
+    "Masukkan Ulasan Anda:",
+    value=st.session_state.ulasan or "Masukkan Ulasan...",
+    height=150,
+    on_change=clear_placeholder,
+)
 
 # Input rating dengan slider
 rating = st.slider("Pilih Rating (1-5):", min_value=1, max_value=5, value=3)
