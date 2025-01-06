@@ -106,6 +106,8 @@ def analisis_sentimen(ulasan, rating):
 # Streamlit UI
 st.title("Analisis Sentimen Ulasan Shopee")
 
+# Input teks ulasan
+ulasan = st.text_area("Masukkan Ulasan Anda:", "Masukkan Ulasan...", height=150)
 
 # Input rating dengan slider
 rating = st.slider("Pilih Rating (1-5):", min_value=1, max_value=5, value=3)
