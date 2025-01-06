@@ -1,0 +1,6 @@
+streamlit
+joblib
+nltk
+sastrawi
+pandas
+Pillow
