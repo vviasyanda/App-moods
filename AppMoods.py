@@ -3,14 +3,12 @@ import re
 import string
 import json
 import joblib
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from tkinter import *
-from tkinter import messagebox
-import tkinter as tk
-from PIL import Image, ImageTk
-import pandas as pd
+import streamlit as st
+from PIL import Image
 
 # Fungsi Pembersihan Teks
 def clean_text(text):
@@ -56,12 +54,9 @@ model_sentimen = joblib.load(model_path)
 vectorizer = joblib.load(vectorizer_path)
 
 # Fungsi untuk menganalisis ulasan
-def analisis_sentimen():
-    ulasan = text_ulasan.get("1.0", END).strip()
-    rating = rating_var.get()
-
+def analisis_sentimen(ulasan, rating):
     if not ulasan or ulasan == "Masukkan Ulasan...":
-        messagebox.showerror("Error", "Harap masukkan ulasan.")
+        st.error("Harap masukkan ulasan.")
         return
 
     # Proses pembersihan teks
@@ -81,114 +76,89 @@ def analisis_sentimen():
     else:
         hasil_akhir = model_prediksi
 
+    # Menampilkan hasil dan gambar
     if hasil_akhir == "Positif":
-        hasil_gambar = positif_image
-        emotikon_gambar = positif_emotikon
+        hasil_gambar = "positif.jpg"
+        emotikon_gambar = "positif_emotikon.jpg"
     elif hasil_akhir == "Negatif":
-        hasil_gambar = negatif_image
-        emotikon_gambar = negatif_emotikon
+        hasil_gambar = "negatif.jpg"
+        emotikon_gambar = "negatif_emotikon.jpg"
     else:
-        hasil_gambar = netral_image
-        emotikon_gambar = netral_emotikon
+        hasil_gambar = "netral.jpg"
+        emotikon_gambar = "netral_emotikon.jpg"
 
-    label_hasil.config(image=hasil_gambar)
-    label_hasil.image = hasil_gambar
-    label_emotikon.config(image=emotikon_gambar)
-    label_emotikon.image = emotikon_gambar
+    st.image(hasil_gambar, width=500)
+    st.image(emotikon_gambar, width=500)
 
-# Jendela utama
-layar = tk.Tk()
-layar.title("Analisis Sentimen Ulasan Shopee")
-layar.geometry('1000x650')
-layar.config(bg="#F4E7CE")
+# Streamlit UI
+st.title("Analisis Sentimen Ulasan Shopee")
 
-# Latar belakang
-gambar_latar_path = os.path.join(os.getcwd(), "background final.png")
-image = Image.open(gambar_latar_path)
-photo = ImageTk.PhotoImage(image)
-label_gambar = Label(layar, image=photo)
-label_gambar.image = photo
-label_gambar.place(x=0, y=0)
+# Input teks ulasan
+ulasan = st.text_area("Masukkan Ulasan Anda:", "Masukkan Ulasan...", height=150)
 
-# Placeholder pada Text
-def on_focus_in(event):
-    if text_ulasan.get("1.0", END).strip() == "Masukkan Ulasan...":
-        text_ulasan.delete("1.0", END)
-        text_ulasan.config(fg="black")
-
-def on_focus_out(event):
-    if not text_ulasan.get("1.0", END).strip():
-        text_ulasan.insert("1.0", "Masukkan Ulasan...")
-        text_ulasan.config(fg="black")
-
-text_ulasan = Text(layar, wrap=WORD, border=0, width=65, height=6, font=("Century", 13), fg="black", bg="#f8f0ea")
-text_ulasan.place(x=165, y=162)
-text_ulasan.insert("1.0", "Masukkan Ulasan...")
-text_ulasan.bind("<FocusIn>", on_focus_in)
-text_ulasan.bind("<FocusOut>", on_focus_out)
-
-# Input rating dengan bintang
-rating_label = Label(layar, text="Masukkan Rating:", bg='#ffe0d3', font=("Century", 13))
-rating_label.place(x=170, y=305)
-
-# Membuat frame untuk bintang rating
-rating_frame = Frame(layar, bg="#ffe0d3")
-rating_frame.place(x=170, y=340)
-
-stars = []
-for i in range(5):
-    star_image_path = os.path.join(os.getcwd(), "bintang kosong.jpg")  # Gambar bintang kosong
-    star_image_filled_path = os.path.join(os.getcwd(), "bintang.png")  # Gambar bintang penuh
-
-    star_empty = ImageTk.PhotoImage(Image.open(star_image_path).resize((30, 30), Image.Resampling.LANCZOS))
-    star_filled = ImageTk.PhotoImage(Image.open(star_image_filled_path).resize((30, 30), Image.Resampling.LANCZOS))
-
-    star_label = Label(rating_frame, image=star_empty, bg="#ffe0d3", border=0)
-    star_label.image_empty = star_empty
-    star_label.image_filled = star_filled
-    star_label.grid(row=0, column=i, padx=5)
-    stars.append(star_label)
-
-# Fungsi untuk memperbarui bintang berdasarkan nilai slider
-def update_stars(value):
-    for i in range(5):
-        if i < int(value):
-            stars[i].config(image=stars[i].image_filled)
-        else:
-            stars[i].config(image=stars[i].image_empty)
-
-# Slider untuk memilih rating
-rating_var = IntVar(value=3)
-rating_slider = Scale(
-    layar, from_=1, to=5, orient=HORIZONTAL, variable=rating_var, length=200, 
-    bg="#F4E7CE", highlightthickness=0, command=update_stars
-)
-rating_slider.place(x=170, y=380)
-
-# Inisialisasi bintang pertama kali
-update_stars(rating_var.get())
+# Input rating dengan slider
+rating = st.slider("Pilih Rating (1-5):", min_value=1, max_value=5, value=3)
 
 # Tombol analisis
-tombol_gambar_path = os.path.join(os.getcwd(), "tombol search.jpg")
-search_image = Image.open(tombol_gambar_path).resize((60, 60), Image.Resampling.LANCZOS)
-search_photo = ImageTk.PhotoImage(search_image)
-tombol_analisis = Button(layar, image=search_photo, bg="#F4E7CE", border=0, command=analisis_sentimen)
-tombol_analisis.place(x=780, y=170)
+if st.button("Analisis Sentimen"):
+    analisis_sentimen(ulasan, rating)
 
 # Gambar hasil analisis
-positif_image = ImageTk.PhotoImage(Image.open(os.path.join(os.getcwd(), "positif.jpg")).resize((180, 90), Image.Resampling.LANCZOS))
-negatif_image = ImageTk.PhotoImage(Image.open(os.path.join(os.getcwd(), "negatif.jpg")).resize((180, 90), Image.Resampling.LANCZOS))
-netral_image = ImageTk.PhotoImage(Image.open(os.path.join(os.getcwd(), "netral.jpg")).resize((180, 90), Image.Resampling.LANCZOS))
-positif_emotikon = ImageTk.PhotoImage(Image.open(os.path.join(os.getcwd(), "positif_emotikon.jpg")).resize((250, 150), Image.Resampling.LANCZOS))
-negatif_emotikon = ImageTk.PhotoImage(Image.open(os.path.join(os.getcwd(), "negatif_emotikon.jpg")).resize((250, 150), Image.Resampling.LANCZOS))
-netral_emotikon = ImageTk.PhotoImage(Image.open(os.path.join(os.getcwd(), "netral_emotikon.jpg")).resize((250, 150), Image.Resampling.LANCZOS))
+positif_image_path = os.path.join(os.getcwd(), "positif.jpg")
+negatif_image_path = os.path.join(os.getcwd(), "negatif.jpg")
+netral_image_path = os.path.join(os.getcwd(), "netral.jpg")
+positif_emotikon_path = os.path.join(os.getcwd(), "positif_emotikon.jpg")
+negatif_emotikon_path = os.path.join(os.getcwd(), "negatif_emotikon.jpg")
+netral_emotikon_path = os.path.join(os.getcwd(), "netral_emotikon.jpg")
 
-# Label hasil
-label_hasil = Label(layar, bg="#F4E7CE", border=0)
-label_hasil.place(x=210, y=480)
+# Menampilkan gambar hasil analisis
+def show_result_image(hasil_akhir):
+    if hasil_akhir == "Positif":
+        st.image(positif_image_path, width=500)
+        st.image(positif_emotikon_path, width=500)
+    elif hasil_akhir == "Negatif":
+        st.image(negatif_image_path, width=500)
+        st.image(negatif_emotikon_path, width=500)
+    else:
+        st.image(netral_image_path, width=500)
+        st.image(netral_emotikon_path, width=500)
 
-label_emotikon = Label(layar, bg="#F4E7CE", border=0)
-label_emotikon.place(x=560, y=380)
 
-# Jalankan aplikasi
-layar.mainloop()
+
+# Gambar hasil analisis
+def analisis_sentimen(ulasan, rating):
+    if not ulasan or ulasan == "Masukkan Ulasan...":
+        st.error("Harap masukkan ulasan.")
+        return
+
+    # Proses pembersihan teks
+    ulasan_cleaned = preprocess_text(ulasan)
+
+    # Prediksi model
+    ulasan_vectorized = vectorizer.transform([ulasan_cleaned])
+    model_prediksi = model_sentimen.predict(ulasan_vectorized)[0]
+
+    # Penanganan hasil "Netral"
+    if model_prediksi == "Netral" and (rating == 3):
+        hasil_akhir = "Netral"
+    elif model_prediksi == "Positif" and rating >= 4:
+        hasil_akhir = "Positif"
+    elif model_prediksi == "Negatif" and rating <= 2:
+        hasil_akhir = "Negatif"
+    else:
+        hasil_akhir = model_prediksi
+
+    # Menampilkan hasil dan gambar
+    if hasil_akhir == "Positif":
+        hasil_gambar = "positif.jpg"
+        emotikon_gambar = "positif_emotikon.jpg"
+    elif hasil_akhir == "Negatif":
+        hasil_gambar = "negatif.jpg"
+        emotikon_gambar = "negatif_emotikon.jpg"
+    else:
+        hasil_gambar = "netral.jpg"
+        emotikon_gambar = "netral_emotikon.jpg"
+
+    # Menampilkan gambar hasil analisis
+    st.image(hasil_gambar, caption="Hasil Analisis Sentimen", width=500)
+    st.image(emotikon_gambar, caption="Emotikon", width=500)
