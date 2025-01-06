@@ -11,13 +11,12 @@ import streamlit as st
 from PIL import Image
 import nltk
 
-# Cek dan download stopwords jika belum tersedia
+# Unduh resource NLTK jika diperlukan
 try:
     stopwords.words('indonesian')
 except LookupError:
     nltk.download('stopwords')
 
-# Cek dan download tokenizer punkt jika belum tersedia
 try:
     nltk.data.find('tokenizers/punkt')
 except LookupError:
@@ -37,9 +36,12 @@ def normalize_text(text, alay_dict):
     return ' '.join(normalized_words)
 
 # Muat Kamus Emoji dan Alay
-emoji_dict_path = os.path.join(os.getcwd(), 'emoji.json')
-with open(emoji_dict_path, 'r', encoding='utf-8') as f:
-    emoji_dict = json.load(f)
+try:
+    emoji_dict_path = os.path.join(os.getcwd(), 'emoji.json')
+    with open(emoji_dict_path, 'r', encoding='utf-8') as f:
+        emoji_dict = json.load(f)
+except FileNotFoundError:
+    emoji_dict = {}
 
 alay_dict_path = os.path.join(os.getcwd(), 'kamus_alay.csv')
 alay_dict_df = pd.read_csv(alay_dict_path, sep=',')
@@ -115,11 +117,3 @@ rating = st.slider("Pilih Rating (1-5):", min_value=1, max_value=5, value=3)
 # Tombol analisis
 if st.button("Analisis Sentimen"):
     analisis_sentimen(ulasan, rating)
-
-# Gambar hasil analisis
-positif_image_path = os.path.join(os.getcwd(), "positif.jpg")
-negatif_image_path = os.path.join(os.getcwd(), "negatif.jpg")
-netral_image_path = os.path.join(os.getcwd(), "netral.jpg")
-positif_emotikon_path = os.path.join(os.getcwd(), "positif_emotikon.jpg")
-negatif_emotikon_path = os.path.join(os.getcwd(), "negatif_emotikon.jpg")
-netral_emotikon_path = os.path.join(os.getcwd(), "netral_emotikon.jpg")
