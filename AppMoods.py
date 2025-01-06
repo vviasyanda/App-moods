@@ -5,7 +5,6 @@ import json
 import joblib
 import pandas as pd
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 import streamlit as st
 from PIL import Image
@@ -16,11 +15,6 @@ try:
     stopwords.words('indonesian')
 except LookupError:
     nltk.download('stopwords')
-
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
 
 # Fungsi Pembersihan Teks
 def clean_text(text):
@@ -52,12 +46,17 @@ factory = StemmerFactory()
 stemmer = factory.create_stemmer()
 stop = stopwords.words('indonesian')
 
+# Fungsi tokenisasi menggunakan regex
+def tokenize_with_regex(text):
+    pattern = r"\b\w+\b"
+    return re.findall(pattern, text)
+
 def preprocess_text(text):
     text = clean_text(text)
     text = normalize_text(text, alay_dict)
     text = ' '.join([word for word in text.split() if word not in stop])
     text = ' '.join([stemmer.stem(word) for word in text.split()])
-    tokens = word_tokenize(text)  # Tokenisasi menggunakan nltk
+    tokens = tokenize_with_regex(text)  # Tokenisasi menggunakan regex
     return ' '.join(tokens)  # Gabungkan kembali token untuk kompatibilitas dengan TF-IDF
 
 # Lokasi file model dan vectorizer
